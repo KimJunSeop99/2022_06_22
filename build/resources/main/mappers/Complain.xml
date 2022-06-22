@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.dongsungsi.dao.ComplainDao">
+    <select id="findByTitleContaining"
+            parameterType="com.example.dongsungsi.paging.Criteria"
+            resultType="com.example.dongsungsi.model.Complain">
+        SELECT *
+        FROM (
+                 SELECT ROWNUM R, TC.*
+                 FROM TB_COMPLAIN_KJS TC
+                 WHERE TC.DELETE_YN = 'N'
+                   AND TITLE LIKE '%' || #{title} || '%'
+                   AND ROWNUM &lt; = (#{page} + 1) * #{size}
+             )
+        WHERE R > #{page} * #{size}
+    </select>
+
+    <select id="findAll" parameterType="com.example.dongsungsi.paging.Criteria"
+            resultType="com.example.dongsungsi.model.Complain">
+        SELECT *
+        FROM (
+                 SELECT ROWNUM R, TC.*
+                 FROM TB_COMPLAIN_KJS TC
+                 WHERE TC.DELETE_YN = 'N'
+                 AND ROWNUM &lt; = (#{page} + 1) * #{size}
+             )
+        WHERE R > #{page} * #{size}
+    </select>
+
+    <select id="selectTotalCount"
+            parameterType="String"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM TB_COMPLAIN_KJS
+        WHERE DELETE_YN = 'N'
+          AND TITLE LIKE '%' || #{title} || '%'
+    </select>
+
+    <select id="findById" parameterType="long"
+            resultType="com.example.dongsungsi.model.Complain">
+        SELECT
+            ID,
+            TITLE,
+            CONTENT,
+            TARGET_PAGE,
+            WRITER,
+            DELETE_YN,
+            INSERT_TIME,
+            UPDATE_TIME,
+            DELETE_TIME
+        FROM TB_COMPLAIN_KJS
+        WHERE DELETE_YN = 'N'
+          AND ID = #{id}
+    </select>
+
+    <insert id="insertComplain" parameterType="com.example.dongsungsi.model.Complain">
+        INSERT INTO TB_COMPLAIN_KJS (
+                ID,
+                TITLE,
+                CONTENT,
+                TARGET_PAGE,
+                WRITER,
+                INSERT_TIME
+        ) VALUES (
+                SQ_COMPLAIN_KJS.NEXTVAL,
+                #{title},
+                #{content},
+                #{targetPage},
+                #{writer},
+                TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+        )
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            SELECT SQ_COMPLAIN_KJS.CURRVAL FROM DUAL
+        </selectKey>
+    </insert>
+
+    <update id="updateComplain" parameterType="com.example.dongsungsi.model.Complain">
+        UPDATE TB_COMPLAIN_KJS
+        SET
+            TITLE = #{title},
+            CONTENT = #{content},
+            TARGET_PAGE = #{targetPage},
+            WRITER = #{writer},
+            UPDATE_TIME = TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+        WHERE ID = #{id}
+    </update>
+
+    <update id="deleteComplain" parameterType="long">
+        UPDATE TB_COMPLAIN_KJS
+        SET
+            DELETE_YN = 'Y',
+            DELETE_TIME = TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+        WHERE ID = #{id}
+    </update>
+
+    <update id="deleteAll">
+        UPDATE TB_COMPLAIN_KJS
+        SET
+            DELETE_YN = 'Y',
+            DELETE_TIME = TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+    </update>
+
+</mapper>
